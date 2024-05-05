@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Travel Bingo! Barcelona - Places</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        /* Center the entire body content */
+        body {
+          display: flex; /* Use flexbox for body */
+          overflow-x: hidden;
+          flex-direction: column; /* Stack elements vertically */
+          justify-content: center; /* Center content vertically */
+          align-items: center; /* Center content horizontally */
+          min-height: auto; /* Set minimum body height for full viewport */
+          font-family: sans-serif; /* Set a default font for better rendering */
+        }
+        /* Container for centered title (improved) */
+        .title-container {
+          text-align: center; /* Center text within container */
+          margin-bottom: 0px; /* Add space between title and board */
+        }
+        .title-container h1,
+        .title-container h2 {
+          margin: auto; /* Add space between title and subtitle */
+        }
+        /* Bingo board */
+        .bingo-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);  /* Maintain 5 columns */
+            grid-auto-rows: minmax(100px, 1fr);  /* New property */
+            gap: 0px;
+            width: auto;
+            height: auto;
+            margin: auto;
+        }
+        .bingo-container {
+            padding: 4px; /* Shorthand for padding on all sides */
+            margin: 0px; /* Apply 20px margin on all sides */
+        }
+        .bingo-cell {
+          border: 2px solid black;
+          padding: auto;
+          /* Center text vertically and horizontally */
+          display: flex;
+          text-align: center;
+          justify-content: center;
+          align-items: center;
+          /* Font size adjusts to fit the cell */
+          font-size: auto;
+        }
+        .bingo-cell.marked {
+          background-color: lightgreen;
+        }
+        /* Media query for mobile devices */
+        @media only screen and (max-width: 768px) {
+          .bingo-board {
+            width: 100%; /* Set width to 100% for mobile */
+            margin: 0; /* Remove default margin on mobile */
+          }
+        }
+    </style>
+</head>
+<body>
+<div class="bingo-container" style="padding: 4px;">
+    <div class="bingo-board" id="bingo-board"></div>
+</div>
+<footer>
+    <p>
+        <button class="generate-button" onclick="generateBoard()">
+            Generate New Board
+        </button>
+        <button class="clear-button" onclick="clearBoard()">
+            Clear Board
+        </button>
+    </p>
+</footer>
+
+<script>
+    // Function to handle cell click
+    function handleCellClick(event) {
+        const cell = event.target;
+        const cellValue = cell.textContent;
+        const selectedValuesKey = 'bingoSelectedValues'; // Key to store data in local storage
+
+        // Check if local storage is supported
+        if (typeof(Storage) !== "undefined") {
+            let existingValues = JSON.parse(localStorage.getItem(selectedValuesKey)) || [];
+
+            if (existingValues.includes(cellValue)) {
+                // Remove value if already selected
+                existingValues = existingValues.filter(value => value !== cellValue);
+            } else {
+                // Add value if not already selected
+                existingValues.push(cellValue);
+            }
+
+            localStorage.setItem(selectedValuesKey, JSON.stringify(existingValues));
+
+            console.log("Selected Values:", existingValues); // For testing purposes
+        } else {
+            // Local storage not supported, handle fallback (optional)
+            console.log("Local storage not supported");
+        }
+
+        // Toggle 'marked' class to change color
+        cell.classList.toggle('marked');
+    }
+
+    // Function to generate the bingo board
+    function generateBoard() {
+        const bingoBoard = document.getElementById('bingo-board');
+        bingoBoard.innerHTML = '';
+
+        // Check if board data exists in local storage
+        const boardData = localStorage.getItem('bingoBoardData');
+        if (boardData) {
+            // If board data exists, parse and load it
+            const savedBoard = JSON.parse(boardData);
+            savedBoard.forEach(cellData => {
+                const cell = document.createElement('div');
+                cell.classList.add('bingo-cell');
+                cell.textContent = cellData.value;
+                if (cellData.marked) {
+                    cell.classList.add('marked');
+                }
+                cell.addEventListener('click', handleCellClick);
+                bingoBoard.appendChild(cell);
+            });
+        } else {
+            // If no board data exists, generate a new board
+            const textValues = [
+            "Sagrada Familia",
+            "Park Güell",
+            "Casa Batlló",
+            "Casa Milà (La Pedrera)",
+            "Gothic Quarter",
+            "La Rambla",
+            "Plaça de Catalunya",
+            "Passeig de Gràcia",
+            "Barceloneta Beach",
+            "Montjuïc",
+            "Poble Espanyol",
+            "Palau Nacional",
+            "Camp Nou",
+            "Tibidabo",
+            "Santa Maria del Mar",
+            "El Born",
+            "Barceloneta Market",
+            "La Boqueria Market",
+            "Picasso Museum",
+            "Joan Miró Foundation",
+            "Maritime Museum",
+            "National Art Museum of Catalonia",
+            "Diagonal Avenue",
+            "Passeig del Born",
+        ];
+
+        
+            // Shuffle the text values
+            textValues.sort(() => Math.random() - 0.5);
+
+            // Add a free space in the center
+            textValues.splice(12, 0, 'FREE'); // Insert 'FREE' at index 12
+
+            // Create cells for each value
+            textValues.forEach(value => {
+                const cell = document.createElement('div');
+                cell.classList.add('bingo-cell');
+                cell.textContent = value;
+                cell.addEventListener('click', handleCellClick);
+                bingoBoard.appendChild(cell);
+            });
+
+            // Save the generated board data to local storage
+            const boardToSave = Array.from(bingoBoard.children).map(cell => ({
+                value: cell.textContent,
+                marked: cell.classList.contains('marked')
+            }));
+            localStorage.setItem('bingoBoardData', JSON.stringify(boardToSave));
+        }
+    }
+
+    // Function to clear the bingo board
+    function clearBoard() {
+        localStorage.removeItem('bingoBoardData'); // Remove board data from local storage
+        generateBoard(); // Regenerate the board
+    }
+
+    // Generate the initial board on page load
+    generateBoard();
+</script>
+</body>
+</html>
